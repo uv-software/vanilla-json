@@ -379,9 +379,9 @@ json_node_t json_get_object(json_node_t node, const char* string) {
     }
     if (node->value.dict) {
         curr = node->value.dict;
-        while ((curr != NULL) && (curr->string != NULL) && (!strcmp(curr->string, string)))
+        while ((curr != NULL) && (curr->string != NULL) && (strcmp(curr->string, string)))
             curr = curr->next;
-        if ((curr != NULL) && (curr->string != NULL))
+        if ((curr != NULL) && (curr->string != NULL) && (!strcmp(curr->string, string)))
             value = curr->value;
         else
             errno = EINVAL;  /* FIXME: error code */
@@ -405,7 +405,7 @@ json_node_t json_get_array(json_node_t node, int index) {
         curr = node->value.array;
         while ((curr != NULL) && (curr->index != index))
             curr = curr->next;
-        if (curr != NULL)
+        if ((curr != NULL) && (curr->index == index))
             value = curr->value;
         else
             errno = EINVAL;  /* FIXME: error code */
@@ -422,9 +422,11 @@ int json_dump(json_node_t node, const char* filename) {
             return errno;
         }
         dump_value(node, (-1), fp);
+        fputc('\n', fp); fflush(fp);
         (void)fclose(fp);
     } else {
         dump_value(node, (-1), stdout);
+        putchar('\n');
     }
     return 0;
 }
