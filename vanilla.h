@@ -168,7 +168,7 @@ extern json_type_t json_value_type(json_node_t node);
  *
  *  @returns     ...
  */
-extern char *json_get_string(json_node_t node, char *buffer, size_t length);
+extern char *json_get_string(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
@@ -176,7 +176,7 @@ extern char *json_get_string(json_node_t node, char *buffer, size_t length);
  *
  *  @returns     ...
  */
-extern char *json_get_number(json_node_t node, char *buffer, size_t length);
+extern char *json_get_number(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
@@ -184,7 +184,7 @@ extern char *json_get_number(json_node_t node, char *buffer, size_t length);
  *
  *  @returns     ...
  */
-extern long json_get_integer(json_node_t node, char* buffer, size_t length);
+extern long json_get_integer(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
@@ -192,7 +192,7 @@ extern long json_get_integer(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern double json_get_float(json_node_t node, char* buffer, size_t length);
+extern double json_get_float(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
@@ -200,7 +200,7 @@ extern double json_get_float(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern int json_get_bool(json_node_t node, char *buffer, size_t length);
+extern int json_get_bool(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
@@ -208,7 +208,7 @@ extern int json_get_bool(json_node_t node, char *buffer, size_t length);
  *
  *  @returns     ...
  */
-extern void* json_get_null(json_node_t node, char *buffer, size_t length);
+extern void* json_get_null(json_node_t node, char *buffer, unsigned long length);
 
 /** @brief       tbd.
  *
