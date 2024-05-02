@@ -33,7 +33,7 @@ OUTDIR = .objects
 all: info outdir $(TARGET)
 
 info:
-	@echo $(CXX)" on "$(current_OS)
+	@echo $(CC)" on "$(current_OS)
 	@echo "target: "$(TARGET)
 	@echo "install: "$(INSTALL)
 
@@ -45,7 +45,7 @@ clean:
 
 
 $(OUTDIR)/main.o: main.c
-	$(CC) $(CXXFLAGS) -MMD -MF $*.d -o $@ -c $<
+	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<
 
 $(OUTDIR)/vanilla.o: vanilla.c
 	$(CC) $(CFLAGS) -MMD -MF $*.d -o $@ -c $<

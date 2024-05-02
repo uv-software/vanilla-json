@@ -1,19 +1,20 @@
-//
-//  main.c
-//  vanilla
-//
-//  Created by Uwe Vogt on 02.05.24.
-//  Copyright © 2024 UV Software. All rights reserved.
-//
+/*
+ *  main.c
+ *  vanilla
+ *
+ *  Created by Uwe Vogt on 02.05.24.
+ *  Copyright © 2024 UV Software. All rights reserved.
+ */
 
-#include <stdio.h>
 #include "vanilla.h"
+#include <stdio.h>
 
 int main(int argc, const char * argv[]) {
+    json_node_t root;
     (void)argc;
     (void)argv;
 
-    json_node_t root = json_read("test.json");
+    root = json_read("test.json");
 #if (0)
     json_dump(root, "dump.json");
 #else
