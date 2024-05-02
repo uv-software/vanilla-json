@@ -98,7 +98,6 @@ extern "C" {
 
 /*  -----------  types  --------------------------------------------------
  */
-
 /** @brief       JSON value types
  */
 typedef enum json_type {                /* JSON value types: */
@@ -128,11 +127,11 @@ struct json_node {                      /* JSON value node: */
         char *string;                   /*   - a JSON string or number or literal value */
         struct json_member* dict;       /*   - a JSON key:value dictionary */
         struct json_element* array;     /*   - an array of JSON values */
-    };                                  /* this type should be treated as an opaque data type! */
+    } value;
 };
 /** @brief       JSON value node
  */
-typedef struct json_node *json_node_t;
+typedef struct json_node *json_node_t;  /* opaque data type! */
 
 
 /*  -----------  variables  ----------------------------------------------
@@ -141,7 +140,6 @@ typedef struct json_node *json_node_t;
 
 /*  -----------  prototypes  ---------------------------------------------
  */
-
 /** @brief       tbd.
  *
  *  @param[in]   filename - ...
@@ -228,13 +226,13 @@ extern json_node_t json_get_object(json_node_t node, const char *string);
  */
 extern json_node_t json_get_array(json_node_t node, int index);
 
-///** @brief       tbd.
-// *
-// *  @param[in]   node - ...
-// *
-// *  @returns     ...
-// */
-//extern json_node_t json_visit(const char *path, json_node_t node);
+/** @brief       tbd.
+*
+*  @param[in]   node - ...
+*
+*  @returns     ...
+*/
+extern json_node_t json_visit(const char *path, json_node_t node);
 
 /** @brief       tbd.
  *
@@ -243,7 +241,6 @@ extern json_node_t json_get_array(json_node_t node, int index);
  *  @returns     ...
  */
 extern int json_dump(json_node_t node, const char *filename);
-
 
 #ifdef __cplusplus
 }

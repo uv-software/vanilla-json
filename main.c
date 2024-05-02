@@ -10,6 +10,8 @@
 #include "vanilla.h"
 
 int main(int argc, const char * argv[]) {
+    (void)argc;
+    (void)argv;
 
     json_node_t root = json_read("test.json");
 #if (0)
@@ -18,4 +20,6 @@ int main(int argc, const char * argv[]) {
     json_dump(root, NULL);
 #endif
     json_free(root);
+
+    return 0;
 }

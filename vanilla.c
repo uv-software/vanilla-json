@@ -136,7 +136,6 @@ static long scan_number(JSON json);
 static long scan_literal(JSON json, const char* literal);
 static char get_char(JSON json);
 static char lookahead(JSON json);
-//static void print_error(const JSON json);
 
 /*  -----------  variables  ----------------------------------------------
  */
@@ -204,10 +203,16 @@ void json_free(json_node_t node) {
 json_type_t json_value_type(json_node_t node) {
     errno = 0;
     if (!node) {
-        errno = 0;  // FIXME: error code
+        errno = 0;  /* FIXME: error code */
         return JSON_ERROR;
     }
     return node->type;
+}
+
+json_node_t json_visit(const char *path, json_node_t node) {
+    (void)path;
+    (void)node;
+    return NULL;
 }
 
 char* json_get_string(json_node_t node, char* buffer, size_t length) {
@@ -281,12 +286,6 @@ int json_dump(json_node_t node, const char* filename) {
 
 /*  -----------  local functions  ----------------------------------------
  */
-//static void print_error(const JSON json) {
-//    assert(json);
-//    // TODO: rework output
-//    fprintf(stderr, "error(%li,%li): %s\n", (long)(json->row + 1), (long)(json->col + 1), &json->buf[json->pos]);
-//}
-
 static char get_char(JSON json) {
     assert(json);
     assert(json->buf);
@@ -365,7 +364,7 @@ static json_node_t parse_value(JSON json) {
     case 'n':
         return parse_literal(json, JSON_NULL);
     default:
-        errno = EINVAL;  // FIXME: errno
+        errno = EINVAL;  /* FIXME: error code */
         return NULL;
     }
 }
@@ -417,7 +416,7 @@ static json_node_t parse_object(JSON json) {
     char* string = NULL;
     
     if (get_char(json) != '{') {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
@@ -425,17 +424,17 @@ static json_node_t parse_object(JSON json) {
         return NULL;
     }
     node->type = JSON_OBJECT;
-    node->dict = NULL;
+    node->value.dict = NULL;
     /* get member (optional) */
     if ((string = get_string(json)) != NULL) {
         if (lookahead(json) == '\0') {
             free(node);
-            errno = EINVAL; // FIXME: errno
+            errno = EINVAL; /* FIXME: error code */
             return NULL;
         }
         if (get_char(json) != ':') {
             free(node);
-            errno = EINVAL; // FIXME: errno
+            errno = EINVAL; /* FIXME: error code */
             return NULL;
         }
         /* get member value (as JSON value) */
@@ -453,12 +452,12 @@ static json_node_t parse_object(JSON json) {
         curr->string = string;
         curr->value = value;
         curr->next = NULL;
-        node->dict = curr;
+        node->value.dict = curr;
         /* loop over obect members, if more */
         while (lookahead(json) == ',') {
             if (get_char(json) != ',') {
                 free_object(node);
-                errno = EINVAL; // FIXME: errno
+                errno = EINVAL; /* FIXME: error code */
                 return NULL;
             }
             /* get member key (as string) */
@@ -470,12 +469,12 @@ static json_node_t parse_object(JSON json) {
             }
             if (lookahead(json) == '\0') {
                 free_object(node);
-                errno = EINVAL; // FIXME: errno
+                errno = EINVAL; /* FIXME: error code */
                 return NULL;
             }
             if (get_char(json) != ':') {
                 free_object(node);
-                errno = EINVAL; // FIXME: errno
+                errno = EINVAL; /* FIXME: error code */
                 return NULL;
             }
             /* get member value (as JSON value) */
@@ -503,7 +502,7 @@ static json_node_t parse_object(JSON json) {
     }
     if (get_char(json) != '}') {
         free_object(node);
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     DEBUG_OBJECT(node);
@@ -515,7 +514,7 @@ static void free_object(json_node_t node) {
     struct json_member* temp = NULL;
 
     if (node && (node->type == JSON_OBJECT)) {
-        curr = node->dict;
+        curr = node->value.dict;
         while (curr) {
             temp = curr;
             curr = temp->next;
@@ -541,9 +540,9 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
             fputc(' ', fp); fputc(' ', fp);
         }
         fputc('{', fp); fputc('\n', fp);
-        if (node->dict) {
+        if (node->value.dict) {
             /* first member */
-            curr = node->dict;
+            curr = node->value.dict;
             for (i = 0; i < depth + 1; i++) {
                 fputc(' ', fp); fputc(' ', fp);
             }
@@ -594,7 +593,7 @@ static json_node_t parse_array(JSON json) {
     int index = 0;
 
     if (get_char(json) != '[') {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
@@ -602,7 +601,7 @@ static json_node_t parse_array(JSON json) {
         return NULL;
     }
     node->type = JSON_ARRAY;
-    node->array = NULL;
+    node->value.array = NULL;
     /* first element (optional) */
     if ((value = parse_value(json)) != NULL) {
         if ((curr = (struct json_element*)malloc(sizeof(struct json_element))) == NULL) {
@@ -613,12 +612,12 @@ static json_node_t parse_array(JSON json) {
         curr->index = index++;
         curr->value = value;
         curr->next  = NULL;
-        node->array = curr;
+        node->value.array = curr;
         /* loop over array elements, if more */
         while (lookahead(json) == ',') {
             if (get_char(json) != ',') {
                 free_array(node);
-                errno = EINVAL; // FIXME: errno
+                errno = EINVAL; /* FIXME: error code */
                 return NULL;
             }
             if ((value = parse_value(json)) == NULL) {
@@ -644,7 +643,7 @@ static json_node_t parse_array(JSON json) {
     }
     if (get_char(json) != ']') {
         free_array(node);
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     DEBUG_ARRAY(node);
@@ -656,7 +655,7 @@ static void free_array(json_node_t node) {
     struct json_element* temp = NULL;
 
     if (node && (node->type == JSON_ARRAY)) {
-        curr = node->array;
+        curr = node->value.array;
         while (curr) {
             temp = curr;
             curr = temp->next;
@@ -675,15 +674,15 @@ static void dump_array(json_node_t node, int depth, FILE* fp) {
     int i;
     assert(fp);
     if (node && (node->type == JSON_ARRAY)) {
-        curr = node->array;
+        curr = node->value.array;
         /* opening bracket */
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
         fputc('[', fp); fputc('\n', fp);
-        if (node->array) {
+        if (node->value.array) {
             /* first element */
-            curr = node->array;
+            curr = node->value.array;
             if (curr->value)
                 dump_value(curr->value, depth + 1, fp);
             /* other elements, if any */
@@ -760,15 +759,15 @@ static char* get_string(JSON json) {
     long length = 0;
 
     if (lookahead(json) != '"') {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if (get_char(json) != '"') {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((length = scan_string(json)) < 0) {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((string = (char*)malloc((size_t)(length + 1))) == NULL) {
@@ -781,7 +780,7 @@ static char* get_string(JSON json) {
         json->col += length;
     }
     if (get_char(json) != '"') {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         free(string);
         return NULL;
     }
@@ -790,27 +789,27 @@ static char* get_string(JSON json) {
 
 static json_node_t parse_string(JSON json) {
     struct json_node* node = NULL;
-    char* value = NULL;
+    char* string = NULL;
 
-    if ((value = get_string(json)) == NULL) {
+    if ((string = get_string(json)) == NULL) {
         /* errno set */
         return NULL;
     }
     if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
-        free(value);
+        free(string);
         return NULL;
     }
     node->type = JSON_STRING;
-    node->string = (char*)value;
-    DEBUG_STRING(node->string);
+    node->value.string = (char*)string;
+    DEBUG_STRING(node->value.string);
     return node;
 }
 
 static void free_string(json_node_t node) {
     if (node && (node->type == JSON_STRING)) {
-        if (node->string)
-            free(node->string);
+        if (node->value.string)
+            free(node->value.string);
         free(node);
     }
 }
@@ -822,8 +821,8 @@ static void dump_string(json_node_t node, int depth, FILE* fp) {
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
-        if (node->string)
-            fprintf(fp, "\"%s\"", node->string);
+        if (node->value.string)
+            fprintf(fp, "\"%s\"", node->value.string);
         fflush(fp);
     }
 }
@@ -936,7 +935,7 @@ static json_node_t parse_number(JSON json) {
     long length = 0;
 
     if ((length = scan_number(json)) <= 0) {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((value = (char*)malloc((size_t)(length + 1))) == NULL) {
@@ -954,15 +953,15 @@ static json_node_t parse_number(JSON json) {
         return NULL;
     }
     node->type = JSON_NUMBER;
-    node->string = (char*)value;
-    DEBUG_NUMBER(node->string);
+    node->value.string = (char*)value;
+    DEBUG_NUMBER(node->value.string);
     return node;
 }
 
 static void free_number(json_node_t node) {
     if (node && (node->type == JSON_NUMBER)) {
-        if (node->string)
-            free(node->string);
+        if (node->value.string)
+            free(node->value.string);
         free(node);
     }
 }
@@ -974,8 +973,8 @@ static void dump_number(json_node_t node, int depth, FILE* fp) {
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
-        if (node->string)
-            fprintf(fp, "%s", node->string);
+        if (node->value.string)
+            fprintf(fp, "%s", node->value.string);
         fflush(fp);
     }
 }
@@ -1012,7 +1011,7 @@ static json_node_t parse_literal(JSON json, json_type_t type) {
     default: errno = EINVAL; return NULL;
     }
     if (length <= 0) {
-        errno = EINVAL; // FIXME: errno
+        errno = EINVAL; /* FIXME: error code */
         return NULL;
     }
     if ((value = (char*)malloc((size_t)(length + 1))) == NULL) {
@@ -1029,8 +1028,8 @@ static json_node_t parse_literal(JSON json, json_type_t type) {
         return NULL;
     }
     node->type = type;
-    node->string = (char*)value;
-    DEBUG_LITERAL(node->string);
+    node->value.string = (char*)value;
+    DEBUG_LITERAL(node->value.string);
     return node;
 }
 
@@ -1038,8 +1037,8 @@ static void free_literal(json_node_t node) {
     if (node && ((node->type == JSON_NULL) ||
                  (node->type == JSON_FALSE) ||
                  (node->type == JSON_TRUE))) {
-        if (node->string)
-            free(node->string);
+        if (node->value.string)
+            free(node->value.string);
         free(node);
     }
 }
@@ -1053,12 +1052,11 @@ static void dump_literal(json_node_t node, int depth, FILE* fp) {
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
-        if (node->string)
-            fprintf(fp, "%s", node->string);
+        if (node->value.string)
+            fprintf(fp, "%s", node->value.string);
         fflush(fp);
     }
 }
-
 /** @}
  */
 /*  ----------------------------------------------------------------------

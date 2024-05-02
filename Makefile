@@ -6,28 +6,22 @@ DEFINES =
 
 HEADERS = 
 
-CFLAGS += -O2 -Wall -Wno-parentheses \
+CFLAGS += -std=c90 -ansi -pedantic -O0 -g -Wall -Wextra -Wno-parentheses \
 	-fno-strict-aliasing \
 	$(DEFINES) \
 	$(HEADERS)
 
-CXXFLAGS += -O2 -g -Wall -pthread \
+CXXFLAGS += -O0 -g -Wall -Wextra -pthread \
 	$(DEFINES) \
 	$(HEADERS)
 
 LDFLAGS  += 
 
-ifeq ($(BINARY),UNIVERSAL)
-CFLAGS += -arch arm64 -arch x86_64
-CXXFLAGS += -arch arm64 -arch x86_64
-LDFLAGS += -arch arm64 -arch x86_64
-endif
-
 LIBRARIES = -lpthread
 
-CXX = clang++
-CC = clang
-LD = clang
+CXX = g++
+CC = gcc
+LD = gcc
 RM = rm -f
 CP = cp -f
 
