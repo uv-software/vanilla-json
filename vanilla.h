@@ -192,7 +192,7 @@ extern long json_get_integer(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern float json_get_float(json_node_t node, char* buffer, size_t length);
+extern double json_get_float(json_node_t node, char* buffer, size_t length);
 
 /** @brief       tbd.
  *
@@ -200,7 +200,7 @@ extern float json_get_float(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern int json_get_boolean(json_node_t node, char *buffer, size_t length);
+extern int json_get_bool(json_node_t node, char *buffer, size_t length);
 
 /** @brief       tbd.
  *

@@ -203,7 +203,7 @@ void json_free(json_node_t node) {
 json_type_t json_value_type(json_node_t node) {
     errno = 0;
     if (!node) {
-        errno = 0;  /* FIXME: error code */
+        errno = EINVAL;  /* FIXME: error code */
         return JSON_ERROR;
     }
     return node->type;
@@ -212,60 +212,205 @@ json_type_t json_value_type(json_node_t node) {
 json_node_t json_visit(const char *path, json_node_t node) {
     (void)path;
     (void)node;
+    errno = EINVAL;  /* TODO: insert coin here */
     return NULL;
 }
 
 char* json_get_string(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
-    return NULL;
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_STRING) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return node->value.string;
 }
 
 char* json_get_number(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
-    return NULL;
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return node->value.string;
 }
 
 long json_get_integer(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
-    return 0L;
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return atol(node->value.string);
 }
-float json_get_float(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
-    return 0.0;
+double json_get_float(json_node_t node, char* buffer, size_t length) {
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return atof(node->value.string);
 }
 
-int json_get_boolean(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
-    return 0;
+int json_get_bool(json_node_t node, char* buffer, size_t length) {
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if ((node->type != JSON_TRUE) && (node->type != JSON_FALSE)) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return (node->type != JSON_TRUE) ? 1 : 0;
 }
 
 void* json_get_null(json_node_t node, char* buffer, size_t length) {
-    (void)node;
-    (void)buffer;
-    (void)length;
+    size_t i = (size_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_NULL) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > (size_t)0)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
     return NULL;
 }
 
 json_node_t json_get_object(json_node_t node, const char* string) {
-    (void)node;
-    (void)string;
-    return NULL;
+    struct json_member* curr = NULL;
+    struct json_node* value = NULL;
+    errno = 0;
+    if (!node || !string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_OBJECT) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->value.dict) {
+        curr = node->value.dict;
+        while ((curr != NULL) && (curr->string != NULL) && (!strcmp(curr->string, string)))
+            curr = curr->next;
+        if ((curr != NULL) && (curr->string != NULL))
+            value = curr->value;
+        else
+            errno = EINVAL;  /* FIXME: error code */
+    }
+    return value;
 }
 
 json_node_t json_get_array(json_node_t node, int index) {
-    (void)node;
-    (void)index;
-    return NULL;
+    struct json_element* curr = NULL;
+    struct json_node* value = NULL;
+    errno = 0;
+    if (!node || (index < 0)) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_ARRAY) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->value.array) {
+        curr = node->value.array;
+        while ((curr != NULL) && (curr->index != index))
+            curr = curr->next;
+        if (curr != NULL)
+            value = curr->value;
+        else
+            errno = EINVAL;  /* FIXME: error code */
+    }
+    return value;
 }
 
 int json_dump(json_node_t node, const char* filename) {
