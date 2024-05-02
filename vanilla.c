@@ -111,7 +111,7 @@ struct json_object {
     json_node_t value;
     struct json_object* next;
 };
-typedef struct json_node_tag {
+typedef struct json_node {
     json_type_t type;
     union {
         char* string;
@@ -119,7 +119,8 @@ typedef struct json_node_tag {
         struct json_object* object;
     };
 } *json_node_t;
-typedef struct json_file_tag {
+
+typedef struct json_file {
     char* buf;
     long len;
     long pos;
@@ -406,8 +407,8 @@ static void dump_value(json_node_t node, int depth, FILE* fp) {
  *               ;
  */
 static json_node_t parse_object(JSON json) {
-    json_node_t node = NULL;
-    json_node_t value = NULL;
+    struct json_node* node = NULL;
+    struct json_node* value = NULL;
     struct json_object* curr = NULL;
     struct json_object* next = NULL;
     char* string = NULL;
@@ -416,7 +417,7 @@ static json_node_t parse_object(JSON json) {
         errno = EINVAL; // FIXME: errno
         return NULL;
     }
-    if ((node = (json_node_t)malloc(sizeof(json_node_t))) == NULL) {
+    if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
         return NULL;
     }
@@ -507,7 +508,24 @@ static json_node_t parse_object(JSON json) {
 }
 
 static void free_object(json_node_t node) {
-    (void)node;
+    struct json_object* curr = NULL;
+    struct json_object* temp = NULL;
+
+    if (node && (node->type == JSON_OBJECT)) {
+        curr = node->object;
+        while (curr) {
+            temp = curr;
+            curr = temp->next;
+            if (temp) {
+                if (temp->value)
+                    free_value(temp->value);
+                if (temp->string)
+                    free(temp->string);
+                free(temp);
+            }
+        }
+        free(node);
+    }
 }
 
 static void dump_object(json_node_t node, int depth, FILE* fp) {
@@ -564,8 +582,8 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
  *               ;
  */
 static json_node_t parse_array(JSON json) {
-    json_node_t node = NULL;
-    json_node_t value = NULL;
+    struct json_node* node = NULL;
+    struct json_node* value = NULL;
     struct json_array* curr = NULL;
     struct json_array* next = NULL;
     int index = 0;
@@ -574,7 +592,7 @@ static json_node_t parse_array(JSON json) {
         errno = EINVAL; // FIXME: errno
         return NULL;
     }
-    if ((node = (json_node_t)malloc(sizeof(json_node_t))) == NULL) {
+    if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
         return NULL;
     }
@@ -629,7 +647,22 @@ static json_node_t parse_array(JSON json) {
 }
 
 static void free_array(json_node_t node) {
-    (void)node;
+    struct json_array* curr = NULL;
+    struct json_array* temp = NULL;
+
+    if (node && (node->type == JSON_ARRAY)) {
+        curr = node->array;
+        while (curr) {
+            temp = curr;
+            curr = temp->next;
+            if (temp) {
+                if (temp->value)
+                    free_value(temp->value);
+                free(temp);
+            }
+        }
+        free(node);
+    }
 }
 
 static void dump_array(json_node_t node, int depth, FILE* fp) {
@@ -749,14 +782,14 @@ static char* get_string(JSON json) {
 }
 
 static json_node_t parse_string(JSON json) {
-    json_node_t node = NULL;
+    struct json_node* node = NULL;
     char* value = NULL;
 
     if ((value = get_string(json)) == NULL) {
         /* errno set */
         return NULL;
     }
-    if ((node = (json_node_t)malloc(sizeof(json_node_t))) == NULL) {
+    if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
         free(value);
         return NULL;
@@ -768,11 +801,11 @@ static json_node_t parse_string(JSON json) {
 }
 
 static void free_string(json_node_t node) {
-//    if (node && (node->type == JSON_STRING)) {
-//        if (node->string)
-//            free(node->string);
-//        free(node);
-//    }
+    if (node && (node->type == JSON_STRING)) {
+        if (node->string)
+            free(node->string);
+        free(node);
+    }
 }
 
 static void dump_string(json_node_t node, int depth, FILE* fp) {
@@ -891,7 +924,7 @@ static long scan_number(JSON json) {
 }
 
 static json_node_t parse_number(JSON json) {
-    json_node_t node = NULL;
+    struct json_node* node = NULL;
     char* value = NULL;
     long length = 0;
 
@@ -908,7 +941,7 @@ static json_node_t parse_number(JSON json) {
         json->pos += length;
         json->col += length;
     }
-    if ((node = (json_node_t)malloc(sizeof(json_node_t))) == NULL) {
+    if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
         free(value);
         return NULL;
@@ -920,11 +953,11 @@ static json_node_t parse_number(JSON json) {
 }
 
 static void free_number(json_node_t node) {
-//    if (node && (node->type == JSON_NUMBER)) {
-//        if (node->string)
-//            free(node->string);
-//        free(node);
-//    }
+    if (node && (node->type == JSON_NUMBER)) {
+        if (node->string)
+            free(node->string);
+        free(node);
+    }
 }
 
 static void dump_number(json_node_t node, int depth, FILE* fp) {
@@ -961,7 +994,7 @@ static long scan_literal(JSON json, const char* literal) {
 }
 
 static json_node_t parse_literal(JSON json, json_type_t type) {
-    json_node_t node = NULL;
+    struct json_node* node = NULL;
     char* value = NULL;
     long length = 0;
 
@@ -984,7 +1017,7 @@ static json_node_t parse_literal(JSON json, json_type_t type) {
         json->pos += length;
         json->col += length;
     }
-    if ((node = (json_node_t)malloc(sizeof(json_node_t))) == NULL) {
+    if ((node = (struct json_node*)malloc(sizeof(struct json_node))) == NULL) {
         /* errno set */
         return NULL;
     }
@@ -995,13 +1028,13 @@ static json_node_t parse_literal(JSON json, json_type_t type) {
 }
 
 static void free_literal(json_node_t node) {
-//    if (node && ((node->type == JSON_NULL) ||
-//                 (node->type == JSON_FALSE) ||
-//                 (node->type == JSON_TRUE))) {
-//        if (node->string)
-//            free(node->string);
-//        free(node);
-//    }
+    if (node && ((node->type == JSON_NULL) ||
+                 (node->type == JSON_FALSE) ||
+                 (node->type == JSON_TRUE))) {
+        if (node->string)
+            free(node->string);
+        free(node);
+    }
 }
 
 static void dump_literal(json_node_t node, int depth, FILE* fp) {

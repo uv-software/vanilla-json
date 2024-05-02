@@ -98,7 +98,7 @@ extern "C" {
 
 /** @brief       JSON value types
  */
-typedef enum json_type_tag {
+typedef enum json_type {
     JSON_STRING,
     JSON_NUMBER,
     JSON_OBJECT,
@@ -111,7 +111,7 @@ typedef enum json_type_tag {
 
 /** @brief       JSON value node
  */
-typedef struct json_node_tag* json_node_t;  /**< opaque data type */
+typedef struct json_node* json_node_t;  /**< opaque data type */
 
 
 /*  -----------  variables  ----------------------------------------------
