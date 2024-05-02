@@ -51,11 +51,13 @@
  *
  *               Syntax to visit a JSON value:
  *  @verbatim
- *               <value-path> : <node-path>
+ *               <value-path> : "@node" <node-path>
+ *                            | "@root" <node-path>
+ *                            | <node-path>
  *                            | <root-path>
  *                            ;
  *
- *               <node-path>  : <string>
+ *               <node-path>  : '.' <string>
  *                            | '[' <index> ']'
  *                            | <node-path> '.' <string>
  *                            | <node-path> '[' <index> ']'
@@ -64,6 +66,7 @@
  *               <root-path>  :
  *                            ;
  *  @endverbatim
+ *  @remarks     No Whitespaces. Strings w/o enclosing quotation marks.
  *
  *  @author      $Author$
  *
@@ -98,20 +101,38 @@ extern "C" {
 
 /** @brief       JSON value types
  */
-typedef enum json_type {
-    JSON_STRING,
-    JSON_NUMBER,
-    JSON_OBJECT,
-    JSON_ARRAY,
-    JSON_TRUE,
-    JSON_FALSE,
-    JSON_NULL,
-    JSON_ERROR = (-1)
+typedef enum json_type {                /* JSON value types: */
+    JSON_STRING,                        /**< JSON string (zero-terminated) */
+    JSON_NUMBER,                        /**< JSON number (long or float) */
+    JSON_OBJECT,                        /**< JSON object (dictionary) */
+    JSON_ARRAY,                         /**< JSON array of values */
+    JSON_TRUE,                          /**< JSON value "true" */
+    JSON_FALSE,                         /**< JSON value "false" */
+    JSON_NULL,                          /**< JSON value "null" */
+    JSON_ERROR = (-1)                   /**< to indicate an error */
 } json_type_t;
 
+struct json_member {                    /* JSON dictionary member: */
+    char *string;                       /* - key (as zero-terminated string) */
+    struct json_node* value;            /* - pointer to a JSON value */
+    struct json_member* next;           /* - pointer to next member */
+};
+struct json_element {                   /* JSON array element: */
+    int index;                          /* - index (zero-based) */
+    struct json_node* value;            /* - pointer to a JSON value */
+    struct json_element* next;          /* - pointer to next member */
+};
+struct json_node {                      /* JSON value node: */
+    json_type_t type;                   /* - JSON value type */
+    union {                             /* - JSON value: */
+        char *string;                   /*   - a JSON string or number or literal value */
+        struct json_member* dict;       /*   - a JSON key:value dictionary */
+        struct json_element* array;     /*   - an array of JSON values */
+    };                                  /* this type should be treated as an opaque data type! */
+};
 /** @brief       JSON value node
  */
-typedef struct json_node* json_node_t;  /**< opaque data type */
+typedef struct json_node *json_node_t;
 
 
 /*  -----------  variables  ----------------------------------------------
@@ -127,7 +148,7 @@ typedef struct json_node* json_node_t;  /**< opaque data type */
  *
  *  @returns     ... or NULL on error
  */
-extern json_node_t json_read(const char* filename);
+extern json_node_t json_read(const char *filename);
 
 /** @brief       tbd.
  *
@@ -149,7 +170,7 @@ extern json_type_t json_value_type(json_node_t node);
  *
  *  @returns     ...
  */
-extern char* json_get_string(json_node_t node, char* buffer, size_t length);
+extern char *json_get_string(json_node_t node, char *buffer, size_t length);
 
 /** @brief       tbd.
  *
@@ -157,7 +178,7 @@ extern char* json_get_string(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern long json_get_number(json_node_t node, char* buffer, size_t length);
+extern char *json_get_number(json_node_t node, char *buffer, size_t length);
 
 /** @brief       tbd.
  *
@@ -165,7 +186,7 @@ extern long json_get_number(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern int json_get_boolean(json_node_t node, char* buffer, size_t length);
+extern long json_get_integer(json_node_t node, char* buffer, size_t length);
 
 /** @brief       tbd.
  *
@@ -173,7 +194,7 @@ extern int json_get_boolean(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern void* json_get_null(json_node_t node, char* buffer, size_t length);
+extern float json_get_float(json_node_t node, char* buffer, size_t length);
 
 /** @brief       tbd.
  *
@@ -181,7 +202,23 @@ extern void* json_get_null(json_node_t node, char* buffer, size_t length);
  *
  *  @returns     ...
  */
-extern json_node_t json_get_object(json_node_t node, const char* string);
+extern int json_get_boolean(json_node_t node, char *buffer, size_t length);
+
+/** @brief       tbd.
+ *
+ *  @param[in]   node - ...
+ *
+ *  @returns     ...
+ */
+extern void* json_get_null(json_node_t node, char *buffer, size_t length);
+
+/** @brief       tbd.
+ *
+ *  @param[in]   node - ...
+ *
+ *  @returns     ...
+ */
+extern json_node_t json_get_object(json_node_t node, const char *string);
 
 /** @brief       tbd.
  *
@@ -197,7 +234,7 @@ extern json_node_t json_get_array(json_node_t node, int index);
 // *
 // *  @returns     ...
 // */
-//extern json_node_t json_visit(const char* path, json_node_t node);
+//extern json_node_t json_visit(const char *path, json_node_t node);
 
 /** @brief       tbd.
  *
@@ -205,7 +242,7 @@ extern json_node_t json_get_array(json_node_t node, int index);
  *
  *  @returns     ...
  */
-extern int json_dump(json_node_t node, const char* filename);
+extern int json_dump(json_node_t node, const char *filename);
 
 
 #ifdef __cplusplus

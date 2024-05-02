@@ -11,9 +11,11 @@
 
 int main(int argc, const char * argv[]) {
 
-    json_node_t root = json_read("/Users/neptune/Projects/vanilla/test.json");
-
-    json_dump(root, "/Users/neptune/Projects/vanilla/dump.json");
-
+    json_node_t root = json_read("test.json");
+#if (0)
+    json_dump(root, "dump.json");
+#else
+    json_dump(root, NULL);
+#endif
     json_free(root);
 }

@@ -101,34 +101,14 @@
 
 /*  -----------  types  --------------------------------------------------
  */
-struct json_array {
-    int index;
-    json_node_t value;
-    struct json_array* next;
-};
-struct json_object {
-    char* string;
-    json_node_t value;
-    struct json_object* next;
-};
-typedef struct json_node {
-    json_type_t type;
-    union {
-        char* string;
-        struct json_array* array;
-        struct json_object* object;
-    };
-} *json_node_t;
-
-typedef struct json_file {
-    char* buf;
-    long len;
-    long pos;
-    long row;
-    long col;
-    //long err;
+typedef struct json_file {              /* JSON file content: */
+    char* buf;                          /* - string buffer (entire file) */
+    long len;                           /* - length of the buffer/file */
+    long pos;                           /* - current read position */
+    long row;                           /* - current line number */
+    long col;                           /* - current column number */
 } json_file_t, *JSON;
-;
+
 /*  -----------  prototypes  ---------------------------------------------
  */
 static json_node_t parse_value(JSON json);
@@ -232,31 +212,54 @@ json_type_t json_value_type(json_node_t node) {
 
 char* json_get_string(json_node_t node, char* buffer, size_t length) {
     (void)node;
+    (void)buffer;
+    (void)length;
     return NULL;
 }
 
-long json_get_number(json_node_t node, char* buffer, size_t length) {
+char* json_get_number(json_node_t node, char* buffer, size_t length) {
     (void)node;
+    (void)buffer;
+    (void)length;
+    return NULL;
+}
+
+long json_get_integer(json_node_t node, char* buffer, size_t length) {
+    (void)node;
+    (void)buffer;
+    (void)length;
     return 0L;
+}
+float json_get_float(json_node_t node, char* buffer, size_t length) {
+    (void)node;
+    (void)buffer;
+    (void)length;
+    return 0.0;
 }
 
 int json_get_boolean(json_node_t node, char* buffer, size_t length) {
     (void)node;
+    (void)buffer;
+    (void)length;
     return 0;
 }
 
 void* json_get_null(json_node_t node, char* buffer, size_t length) {
     (void)node;
+    (void)buffer;
+    (void)length;
     return NULL;
 }
 
 json_node_t json_get_object(json_node_t node, const char* string) {
     (void)node;
+    (void)string;
     return NULL;
 }
 
 json_node_t json_get_array(json_node_t node, int index) {
     (void)node;
+    (void)index;
     return NULL;
 }
 
@@ -409,8 +412,8 @@ static void dump_value(json_node_t node, int depth, FILE* fp) {
 static json_node_t parse_object(JSON json) {
     struct json_node* node = NULL;
     struct json_node* value = NULL;
-    struct json_object* curr = NULL;
-    struct json_object* next = NULL;
+    struct json_member* curr = NULL;
+    struct json_member* next = NULL;
     char* string = NULL;
     
     if (get_char(json) != '{') {
@@ -422,7 +425,7 @@ static json_node_t parse_object(JSON json) {
         return NULL;
     }
     node->type = JSON_OBJECT;
-    node->object = NULL;
+    node->dict = NULL;
     /* get member (optional) */
     if ((string = get_string(json)) != NULL) {
         if (lookahead(json) == '\0') {
@@ -442,7 +445,7 @@ static json_node_t parse_object(JSON json) {
             free(node);
             return NULL;
         }
-        if ((curr = (struct json_object*)malloc(sizeof(struct json_object))) == NULL) {
+        if ((curr = (struct json_member*)malloc(sizeof(struct json_member))) == NULL) {
             /* errno set */
             free(node);
             return NULL;
@@ -450,7 +453,7 @@ static json_node_t parse_object(JSON json) {
         curr->string = string;
         curr->value = value;
         curr->next = NULL;
-        node->object = curr;
+        node->dict = curr;
         /* loop over obect members, if more */
         while (lookahead(json) == ',') {
             if (get_char(json) != ',') {
@@ -482,7 +485,7 @@ static json_node_t parse_object(JSON json) {
                 free_object(node);
                 return NULL;
             }
-            if ((next = (struct json_object*)malloc(sizeof(struct json_object))) == NULL) {
+            if ((next = (struct json_member*)malloc(sizeof(struct json_member))) == NULL) {
                 /* errno set */
                 free_object(node);
                 return NULL;
@@ -508,11 +511,11 @@ static json_node_t parse_object(JSON json) {
 }
 
 static void free_object(json_node_t node) {
-    struct json_object* curr = NULL;
-    struct json_object* temp = NULL;
+    struct json_member* curr = NULL;
+    struct json_member* temp = NULL;
 
     if (node && (node->type == JSON_OBJECT)) {
-        curr = node->object;
+        curr = node->dict;
         while (curr) {
             temp = curr;
             curr = temp->next;
@@ -529,7 +532,7 @@ static void free_object(json_node_t node) {
 }
 
 static void dump_object(json_node_t node, int depth, FILE* fp) {
-    struct json_object* curr = NULL;
+    struct json_member* curr = NULL;
     int i;
     assert(fp);
     if (node && (node->type == JSON_OBJECT)) {
@@ -538,9 +541,9 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
             fputc(' ', fp); fputc(' ', fp);
         }
         fputc('{', fp); fputc('\n', fp);
-        if (node->object) {
+        if (node->dict) {
             /* first member */
-            curr = node->object;
+            curr = node->dict;
             for (i = 0; i < depth + 1; i++) {
                 fputc(' ', fp); fputc(' ', fp);
             }
@@ -564,11 +567,13 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
                 curr = curr->next;
             }
         }
+        fputc('\n', fp);
         /* closing bracket */
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
-        fputc('}', fp); fputc('\n', fp);
+        fputc('}', fp);
+        fflush(fp);
     }
 }
 
@@ -584,8 +589,8 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
 static json_node_t parse_array(JSON json) {
     struct json_node* node = NULL;
     struct json_node* value = NULL;
-    struct json_array* curr = NULL;
-    struct json_array* next = NULL;
+    struct json_element* curr = NULL;
+    struct json_element* next = NULL;
     int index = 0;
 
     if (get_char(json) != '[') {
@@ -600,7 +605,7 @@ static json_node_t parse_array(JSON json) {
     node->array = NULL;
     /* first element (optional) */
     if ((value = parse_value(json)) != NULL) {
-        if ((curr = (struct json_array*)malloc(sizeof(struct json_array))) == NULL) {
+        if ((curr = (struct json_element*)malloc(sizeof(struct json_element))) == NULL) {
             /* errno set */
             free(node);
             return NULL;
@@ -621,7 +626,7 @@ static json_node_t parse_array(JSON json) {
                 free_array(node);
                 return NULL;
             }
-            if ((next = (struct json_array*)malloc(sizeof(struct json_array))) == NULL) {
+            if ((next = (struct json_element*)malloc(sizeof(struct json_element))) == NULL) {
                 /* errno set */
                 free_array(node);
                 return NULL;
@@ -647,8 +652,8 @@ static json_node_t parse_array(JSON json) {
 }
 
 static void free_array(json_node_t node) {
-    struct json_array* curr = NULL;
-    struct json_array* temp = NULL;
+    struct json_element* curr = NULL;
+    struct json_element* temp = NULL;
 
     if (node && (node->type == JSON_ARRAY)) {
         curr = node->array;
@@ -666,7 +671,7 @@ static void free_array(json_node_t node) {
 }
 
 static void dump_array(json_node_t node, int depth, FILE* fp) {
-    struct json_array* curr = NULL;
+    struct json_element* curr = NULL;
     int i;
     assert(fp);
     if (node && (node->type == JSON_ARRAY)) {
@@ -690,11 +695,13 @@ static void dump_array(json_node_t node, int depth, FILE* fp) {
                 curr = curr->next;
             }
         }
+        fputc('\n', fp);
         /* closing bracket */
         for (i = 0; i < depth; i++) {
             fputc(' ', fp); fputc(' ', fp);
         }
-        fputc(']', fp); fputc('\n', fp);
+        fputc(']', fp);
+        fflush(fp);
     }
 }
 
@@ -817,7 +824,7 @@ static void dump_string(json_node_t node, int depth, FILE* fp) {
         }
         if (node->string)
             fprintf(fp, "\"%s\"", node->string);
-        fputc('\n', fp);
+        fflush(fp);
     }
 }
 
@@ -969,7 +976,7 @@ static void dump_number(json_node_t node, int depth, FILE* fp) {
         }
         if (node->string)
             fprintf(fp, "%s", node->string);
-        fputc('\n', fp);
+        fflush(fp);
     }
 }
 
@@ -1048,7 +1055,7 @@ static void dump_literal(json_node_t node, int depth, FILE* fp) {
         }
         if (node->string)
             fprintf(fp, "%s", node->string);
-        fputc('\n', fp);
+        fflush(fp);
     }
 }
 
