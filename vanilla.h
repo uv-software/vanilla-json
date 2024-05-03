@@ -103,22 +103,30 @@ typedef enum json_type {                /* JSON value types: */
     JSON_ERROR = (-1)                   /**< to indicate an error */
 } json_type_t;
 
-struct json_member {                    /* JSON dictionary member: */
+struct json_member {                    /* dictionary member: */
     char *string;                       /* - key (as zero-terminated string) */
     struct json_node* value;            /* - pointer to a JSON value */
     struct json_member* next;           /* - pointer to next member */
 };
-struct json_element {                   /* JSON array element: */
+struct json_dict {                      /* dictionary (as a linked list): */
+    struct json_member* head;           /* - pointer to first member */
+    struct json_member* curr;           /* - pointer to current member */
+};
+struct json_element {                   /* array element: */
     int index;                          /* - index (zero-based) */
     struct json_node* value;            /* - pointer to a JSON value */
-    struct json_element* next;          /* - pointer to next member */
+    struct json_element* next;          /* - pointer to next element */
+};
+struct json_array {                     /* array (as a linked list): */
+    struct json_element* head;          /* - pointer to first element */
+    struct json_element* curr;          /* - pointer to current element */
 };
 struct json_node {                      /* JSON value node: */
     json_type_t type;                   /* - JSON value type */
     union {                             /* - JSON value: */
         char *string;                   /*   - a JSON string or number or literal value */
-        struct json_member* dict;       /*   - a JSON key:value dictionary */
-        struct json_element* array;     /*   - an array of JSON values */
+        struct json_dict dict;          /*   - a JSON key:value dictionary */
+        struct json_array array;        /*   - an array of JSON values */
     } value;
 };
 /** @brief       JSON value node

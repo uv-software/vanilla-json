@@ -221,14 +221,15 @@ json_node_t json_get_value_of(const char* string, json_node_t node) {
         errno = EINVAL;  /* FIXME: error code */
         return NULL;
     }
-    if (node->value.dict) {
-        curr = node->value.dict;
+    if (node->value.dict.head) {
+        curr = node->value.dict.head;
         while ((curr != NULL) && (curr->string != NULL) && (strcmp(curr->string, string)))
             curr = curr->next;
         if ((curr != NULL) && (curr->string != NULL) && (!strcmp(curr->string, string)))
             value = curr->value;
         else
             errno = EINVAL;  /* FIXME: error code */
+        node->value.dict.curr = curr;
     }
     return value;
 }
@@ -245,14 +246,15 @@ json_node_t json_get_value_at(int index, json_node_t node) {
         errno = EINVAL;  /* FIXME: error code */
         return NULL;
     }
-    if (node->value.array) {
-        curr = node->value.array;
+    if (node->value.array.head) {
+        curr = node->value.array.head;
         while ((curr != NULL) && (curr->index != index))
             curr = curr->next;
         if ((curr != NULL) && (curr->index == index))
             value = curr->value;
         else
             errno = EINVAL;  /* FIXME: error code */
+        node->value.array.curr = curr;
     }
     return value;
 }
@@ -564,8 +566,8 @@ static json_node_t parse_object(JSON json) {
         return NULL;
     }
     node->type = JSON_OBJECT;
-    node->value.dict = NULL;
-    node->value.string = NULL;
+    node->value.dict.head = NULL;
+    node->value.dict.curr = NULL;
     /* get member (optional) */
     if ((string = get_string(json)) != NULL) {
         if (lookahead(json) == '\0') {
@@ -598,7 +600,7 @@ static json_node_t parse_object(JSON json) {
         curr->string = string;
         curr->value = value;
         curr->next = NULL;
-        node->value.dict = curr;
+        node->value.dict.head = curr;
         /* loop over obect members, if more */
         while (lookahead(json) == ',') {
             if (get_char(json) != ',') {
@@ -665,7 +667,7 @@ static void free_object(json_node_t node) {
     struct json_member* temp = NULL;
 
     if (node && (node->type == JSON_OBJECT)) {
-        curr = node->value.dict;
+        curr = node->value.dict.head;
         while (curr) {
             temp = curr;
             curr = temp->next;
@@ -691,9 +693,9 @@ static void dump_object(json_node_t node, int depth, FILE* fp) {
             fputc(' ', fp); fputc(' ', fp);
         }
         fputc('{', fp); fputc('\n', fp);
-        if (node->value.dict) {
+        if (node->value.dict.head) {
             /* first member */
-            curr = node->value.dict;
+            curr = node->value.dict.head;
             for (i = 0; i < depth + 1; i++) {
                 fputc(' ', fp); fputc(' ', fp);
             }
@@ -752,7 +754,8 @@ static json_node_t parse_array(JSON json) {
         return NULL;
     }
     node->type = JSON_ARRAY;
-    node->value.array = NULL;
+    node->value.array.head = NULL;
+    node->value.array.curr = NULL;
     /* first element (optional) */
     if ((value = parse_value(json)) != NULL) {
         if ((curr = (struct json_element*)malloc(sizeof(struct json_element))) == NULL) {
@@ -764,7 +767,7 @@ static json_node_t parse_array(JSON json) {
         curr->index = index++;
         curr->value = value;
         curr->next  = NULL;
-        node->value.array = curr;
+        node->value.array.head = curr;
         /* loop over array elements, if more */
         while (lookahead(json) == ',') {
             if (get_char(json) != ',') {
@@ -808,7 +811,7 @@ static void free_array(json_node_t node) {
     struct json_element* temp = NULL;
 
     if (node && (node->type == JSON_ARRAY)) {
-        curr = node->value.array;
+        curr = node->value.array.head;
         while (curr) {
             temp = curr;
             curr = temp->next;
@@ -832,9 +835,9 @@ static void dump_array(json_node_t node, int depth, FILE* fp) {
             fputc(' ', fp); fputc(' ', fp);
         }
         fputc('[', fp); fputc('\n', fp);
-        if (node->value.array) {
+        if (node->value.array.head) {
             /* first element */
-            curr = node->value.array;
+            curr = node->value.array.head;
             if (curr->value)
                 dump_value(curr->value, depth + 1, fp);
             /* other elements, if any */
