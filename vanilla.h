@@ -183,6 +183,11 @@ extern json_node_t json_get_value_of(const char* string, json_node_t node);
  */
 extern json_node_t json_get_value_at(int index, json_node_t node);
 
+extern json_node_t json_get_value_first(json_node_t node);
+extern json_node_t json_get_value_next(json_node_t node);
+extern char* json_get_value_string(json_node_t node);
+extern int json_get_value_index(json_node_t node);
+
 /** @brief       returns a pointer to the content of the given JSON node as
  *               zero-terminated string, if the node is a JSON string value.
  *

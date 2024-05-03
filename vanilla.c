@@ -259,6 +259,87 @@ json_node_t json_get_value_at(int index, json_node_t node) {
     return value;
 }
 
+json_node_t json_get_value_first(json_node_t node) {
+    struct json_node* value = NULL;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type == JSON_OBJECT) {
+        node->value.dict.curr = node->value.dict.head;
+        if (node->value.dict.curr)
+            value = node->value.dict.curr->value;
+    }
+    else if (node->type == JSON_ARRAY) {
+        node->value.array.curr = node->value.array.head;
+        if (node->value.array.curr)
+            value = node->value.array.curr->value;
+    }
+    else {
+        errno = EINVAL;  /* FIXME: error code */
+    }
+    return value;
+}
+
+json_node_t json_get_value_next(json_node_t node) {
+    struct json_node* value = NULL;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type == JSON_OBJECT) {
+        if (node->value.dict.curr)
+            node->value.dict.curr = node->value.dict.curr->next;
+        if (node->value.dict.curr)
+            value = node->value.dict.curr->value;
+    }
+    else if (node->type == JSON_ARRAY) {
+        if (node->value.array.curr)
+            node->value.array.curr = node->value.array.curr->next;
+        if (node->value.array.curr)
+            value = node->value.array.curr->value;
+    }
+    else {
+        errno = EINVAL;  /* FIXME: error code */
+    }
+    return value;
+}
+
+char* json_get_value_string(json_node_t node) {
+    char* string = NULL;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type == JSON_OBJECT) {
+        if (node->value.dict.curr)
+            string = node->value.dict.curr->string;
+    }
+    else {
+        errno = EINVAL;  /* FIXME: error code */
+    }
+    return string;
+}
+
+int json_get_value_index(json_node_t node) {
+    int index = (-1);
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return (-1);
+    }
+    if (node->type == JSON_ARRAY) {
+        if (node->value.array.curr)
+            index = node->value.array.curr->index;
+    }
+    else {
+        errno = EINVAL;  /* FIXME: error code */
+    }
+    return index;
+}
+
 char* json_get_string(json_node_t node, char* buffer, jsize_t length) {
     jsize_t i = (jsize_t)0;
     errno = 0;
