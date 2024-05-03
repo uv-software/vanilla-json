@@ -147,7 +147,6 @@ json_node_t json_read(const char* filename) {
     json_node_t root = NULL;
     json_file_t file;
     FILE* fp = NULL;
-
     errno = 0;
     (void)memset(&file, 0, sizeof(json_file_t));
     /* (1) open the file */
@@ -752,13 +751,11 @@ static void free_object(json_node_t node) {
         while (curr) {
             temp = curr;
             curr = temp->next;
-            if (temp) {
-                if (temp->value)
-                    free_value(temp->value);
-                if (temp->string)
-                    free(temp->string);
-                free(temp);
-            }
+            if (temp->value)
+                free_value(temp->value);
+            if (temp->string)
+                free(temp->string);
+            free(temp);
         }
         free(node);
     }
@@ -896,11 +893,9 @@ static void free_array(json_node_t node) {
         while (curr) {
             temp = curr;
             curr = temp->next;
-            if (temp) {
-                if (temp->value)
-                    free_value(temp->value);
-                free(temp);
-            }
+            if (temp->value)
+                free_value(temp->value);
+            free(temp);
         }
         free(node);
     }

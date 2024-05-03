@@ -3,6 +3,11 @@
 json
 *.json
 *.dump
+*.exe
+
+# Cppcheck temporary folder
+#
+vanilla-json-cppcheck-build-dir
 
 # Xcode
 #
