@@ -49,25 +49,6 @@
  *
  *  @brief       Vanilla-JSON - A very simple JSON Parser
  *
- *               Syntax to visit a JSON value:
- *  @verbatim
- *               <value-path> : "@node" <node-path>
- *                            | "@root" <node-path>
- *                            | <node-path>
- *                            | <root-path>
- *                            ;
- *
- *               <node-path>  : '.' <string>
- *                            | '[' <index> ']'
- *                            | <node-path> '.' <string>
- *                            | <node-path> '[' <index> ']'
- *                            ;
- *
- *               <root-path>  :
- *                            ;
- *  @endverbatim
- *  @remarks     No Whitespaces. Strings w/o enclosing quotation marks.
- *
  *  @author      $Author$
  *
  *  @version     $Rev$
@@ -160,7 +141,23 @@ extern void json_free(json_node_t node);
  *
  *  @returns     ...
  */
-extern json_type_t json_value_type(json_node_t node);
+extern json_type_t json_get_value_type(json_node_t node);
+
+/** @brief       tbd.
+ *
+ *  @param[in]   node - ...
+ *
+ *  @returns     ...
+ */
+extern json_node_t json_get_value_of(const char* string, json_node_t node);
+
+/** @brief       tbd.
+ *
+ *  @param[in]   node - ...
+ *
+ *  @returns     ...
+ */
+extern json_node_t json_get_value_at(int index, json_node_t node);
 
 /** @brief       tbd.
  *
@@ -216,7 +213,7 @@ extern void* json_get_null(json_node_t node, char *buffer, unsigned long length)
  *
  *  @returns     ...
  */
-extern json_node_t json_get_object(json_node_t node, const char *string);
+extern json_node_t json_get_value_first(json_node_t node);
 
 /** @brief       tbd.
  *
@@ -224,15 +221,7 @@ extern json_node_t json_get_object(json_node_t node, const char *string);
  *
  *  @returns     ...
  */
-extern json_node_t json_get_array(json_node_t node, int index);
-
-/** @brief       tbd.
-*
-*  @param[in]   node - ...
-*
-*  @returns     ...
-*/
-extern json_node_t json_visit(const char *path, json_node_t node);
+extern json_node_t json_get_value_next(json_node_t node);
 
 /** @brief       tbd.
  *

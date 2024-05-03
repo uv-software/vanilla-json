@@ -200,20 +200,13 @@ void json_free(json_node_t node) {
      free_value(node);
 }
 
-json_type_t json_value_type(json_node_t node) {
+json_type_t json_get_value_type(json_node_t node) {
     errno = 0;
     if (!node) {
         errno = EINVAL;  /* FIXME: error code */
         return JSON_ERROR;
     }
     return node->type;
-}
-
-json_node_t json_visit(const char *path, json_node_t node) {
-    (void)path;
-    (void)node;
-    errno = EINVAL;  /* TODO: insert coin here */
-    return NULL;
 }
 
 char* json_get_string(json_node_t node, char* buffer, unsigned long length) {
@@ -365,7 +358,7 @@ void* json_get_null(json_node_t node, char* buffer, unsigned long length) {
     return NULL;
 }
 
-json_node_t json_get_object(json_node_t node, const char* string) {
+json_node_t json_get_value_of(const char* string, json_node_t node) {
     struct json_member* curr = NULL;
     struct json_node* value = NULL;
     errno = 0;
@@ -389,7 +382,7 @@ json_node_t json_get_object(json_node_t node, const char* string) {
     return value;
 }
 
-json_node_t json_get_array(json_node_t node, int index) {
+json_node_t json_get_value_at(int index, json_node_t node) {
     struct json_element* curr = NULL;
     struct json_node* value = NULL;
     errno = 0;
