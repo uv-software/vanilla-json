@@ -209,155 +209,6 @@ json_type_t json_get_value_type(json_node_t node) {
     return node->type;
 }
 
-char* json_get_string(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (node->type != JSON_STRING) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return node->value.string;
-}
-
-char* json_get_number(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (node->type != JSON_NUMBER) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return node->value.string;
-}
-
-long json_get_integer(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0L;
-    }
-    if (node->type != JSON_NUMBER) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0L;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0L;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return atol(node->value.string);
-}
-double json_get_float(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0.0;
-    }
-    if (node->type != JSON_NUMBER) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0.0;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0.0;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return atof(node->value.string);
-}
-
-int json_get_bool(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0;
-    }
-    if ((node->type != JSON_TRUE) && (node->type != JSON_FALSE)) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return 0;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return (node->type != JSON_TRUE) ? 1 : 0;
-}
-
-void* json_get_null(json_node_t node, char* buffer, unsigned long length) {
-    unsigned long i = 0UL;
-    errno = 0;
-    if (!node) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (node->type != JSON_NULL) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (!node->value.string) {
-        errno = EINVAL;  /* FIXME: error code */
-        return NULL;
-    }
-    if (buffer && (length > 0UL)) {
-        do {
-            buffer[i] = node->value.string[i];
-            i++;
-        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
-        buffer[(length - 1)] = '\0';
-    }
-    return NULL;
-}
-
 json_node_t json_get_value_of(const char* string, json_node_t node) {
     struct json_member* curr = NULL;
     struct json_node* value = NULL;
@@ -404,6 +255,155 @@ json_node_t json_get_value_at(int index, json_node_t node) {
             errno = EINVAL;  /* FIXME: error code */
     }
     return value;
+}
+
+char* json_get_string(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_STRING) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return node->value.string;
+}
+
+char* json_get_number(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return node->value.string;
+}
+
+long json_get_integer(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0L;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return atol(node->value.string);
+}
+double json_get_float(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (node->type != JSON_NUMBER) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0.0;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return atof(node->value.string);
+}
+
+int json_get_bool(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if ((node->type != JSON_TRUE) && (node->type != JSON_FALSE)) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return 0;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return (node->type != JSON_TRUE) ? 1 : 0;
+}
+
+void* json_get_null(json_node_t node, char* buffer, jsize_t length) {
+    jsize_t i = (jsize_t)0;
+    errno = 0;
+    if (!node) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (node->type != JSON_NULL) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (!node->value.string) {
+        errno = EINVAL;  /* FIXME: error code */
+        return NULL;
+    }
+    if (buffer && (length > 0UL)) {
+        do {
+            buffer[i] = node->value.string[i];
+            i++;
+        } while ((node->value.string[(i - 1)] != '\0') && (i < length));
+        buffer[(length - 1)] = '\0';
+    }
+    return NULL;
 }
 
 int json_dump(json_node_t node, const char* filename) {

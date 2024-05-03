@@ -23,12 +23,12 @@ int json_dump(json_node_t node, const char *filename);
 json_type_t json_get_value_type(json_node_t node);
 json_node_t json_get_value_of(const char* string, json_node_t node);
 json_node_t json_get_value_at(int index, json_node_t node);
-char *json_get_string(json_node_t node, char *buffer, unsigned long length);
-char *json_get_number(json_node_t node, char *buffer, unsigned long length);
-long json_get_integer(json_node_t node, char *buffer, unsigned long length);
-double json_get_float(json_node_t node, char *buffer, unsigned long length);
-int json_get_bool(json_node_t node, char *buffer, unsigned long length);
-void* json_get_null(json_node_t node, char *buffer, unsigned long length);
+char *json_get_string(json_node_t node, char *buffer, jsize_t length);
+char *json_get_number(json_node_t node, char *buffer, jsize_t length);
+long json_get_integer(json_node_t node, char *buffer, jsize_t length);
+double json_get_float(json_node_t node, char *buffer, jsize_t length);
+int json_get_bool(json_node_t node, char *buffer, jsize_t length);
+void* json_get_null(json_node_t node, char *buffer, jsize_t length);
 ```
 
 ...

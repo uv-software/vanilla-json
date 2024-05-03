@@ -63,19 +63,30 @@
 extern "C" {
 #endif
 
-/*  -----------  includes  -----------------------------------------------
- */
-
-
 /*  -----------  options  ------------------------------------------------
  */
-
+/** @name        Compiler Switches
+ *  @brief       Options for conditional compilation.
+ *  @note        If a define is not defined, it is automatically set to 0.
+ *  @{ */
+#ifndef OPTION_DISABLED
+#define OPTION_DISABLED  0
+#endif
+/** @note        Set define OPTION_INCLUDE_STDDEF_H to a non-zero value 
+ *               (e.g. the build environment) to include header <stddef.h>
+ *               and use size_t for the size of objects.
+ */
+#if (OPTION_INCLUDE_STDDEF_H != OPTION_DISABLED)
+#include <stddef.h>                     /* C <stddef.h> Standard Library header */
+typedef size_t  jsize_t;                /* to represent the size of an object */
+#else
+typedef unsigned long  jsize_t;         /* if you don't want to include <stddef.h> */
+#endif
+/** @} */
 
 /*  -----------  defines  ------------------------------------------------
  */
-#ifndef JSON_LINE_LENGTH
-#define JSON_LINE_LENGTH  1024
-#endif
+
 
 /*  -----------  types  --------------------------------------------------
  */
@@ -121,113 +132,146 @@ typedef struct json_node *json_node_t;  /* opaque data type! */
 
 /*  -----------  prototypes  ---------------------------------------------
  */
-/** @brief       tbd.
+/** @brief       reads a file and build an internal representation of the file's
+ *               content (JSON value node) if it is a valid JSON file.
  *
- *  @param[in]   filename - ...
+ *  @param[in]   filename  - name of the file to be parsed as JSON file
  *
- *  @returns     ... or NULL on error
+ *  @returns     the JSON root node if successfully read, or NULL on error
  */
 extern json_node_t json_read(const char *filename);
 
-/** @brief       tbd.
+/** @brief       frees the memory used by the given JSON node and its childs.
  *
- *  @param[in]   node - ...
+ *  @param[in]   node  - a JSON value node
  */
 extern void json_free(json_node_t node);
 
-/** @brief       tbd.
+/** @brief       returns the value type of the given JSON node.
  *
- *  @param[in]   node - ...
+ *  @param[in]   node  - a JSON value node
  *
- *  @returns     ...
+ *  @returns     the JSON type of the node, or special value JSON_ERROR on error
  */
 extern json_type_t json_get_value_type(json_node_t node);
 
-/** @brief       tbd.
+/** @brief       returns the JSON value node of the JSON object member specified by
+ *               the given string (key), if the given node is a JSON object value.
  *
- *  @param[in]   node - ...
+ *  @param[in]   string  - key of a JSON object member (string)
+ *  @param[in]   node    - a JSON value node of type JSON object
  *
- *  @returns     ...
+ *  @returns     the JSON node of the member specified by the key, or NULL
  */
 extern json_node_t json_get_value_of(const char* string, json_node_t node);
 
-/** @brief       tbd.
+/** @brief       returns the JSON value node of the JSON array element specified by
+ *               the given index, if the given node is a JSON array value.
  *
- *  @param[in]   node - ...
+ *  @param[in]   index  - index of a JSON array element (int)
+ *  @param[in]   node   - a JSON value node of type JSON array
  *
- *  @returns     ...
+ *  @returns     the JSON node at the specified array index, or NULL
  */
 extern json_node_t json_get_value_at(int index, json_node_t node);
 
-/** @brief       tbd.
+/** @brief       returns a pointer to the content of the given JSON node as
+ *               zero-terminated string, if the node is a JSON string value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The pointer is invalid if the node or its parent are freed.
  *
- *  @returns     ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
+ *
+ *  @param[in]   node    - a JSON value node of type JSON string
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     pointer to the JSON string value, or NULL on error
  */
-extern char *json_get_string(json_node_t node, char *buffer, unsigned long length);
+extern char *json_get_string(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       returns a pointer to the content of the given JSON node as
+ *               zero-terminated string, if the node is a JSON number value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The pointer is invalid if the node or its parent are freed.
  *
- *  @returns     ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
+ *
+ *  @param[in]   node    - a JSON value node of type JSON number
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     pointer to the JSON number as zero-terminated string, or NULL on error
  */
-extern char *json_get_number(json_node_t node, char *buffer, unsigned long length);
+extern char *json_get_number(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       returns the content of the given JSON node as integer value,
+ *               if the node is a JSON number value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The number is converted into long by atol(); see man atol(3).
  *
- *  @returns     ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
+ *
+ *  @param[in]   node    - a JSON value node of type JSON number
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     the JSON number converted into an integer value
  */
-extern long json_get_integer(json_node_t node, char *buffer, unsigned long length);
+extern long json_get_integer(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       returns the content of the given JSON node as floating point value,
+ *               if the node is a JSON number value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The number is converted into double by atof(); see man atof(3).
  *
- *  @returns     ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
+ *
+ *  @param[in]   node    - a JSON value node of type JSON number
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     the JSON number converted into a floating point value
  */
-extern double json_get_float(json_node_t node, char *buffer, unsigned long length);
+extern double json_get_float(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       returns the content of the given JSON node as boolean value,
+ *               if the node is a JSON "true" or JSON "false" value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
  *
- *  @returns     ...
+ *  @param[in]   node    - a JSON value node of type JSON "true" or "false"
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     a non-zero value for "true", otherwise 0
  */
-extern int json_get_bool(json_node_t node, char *buffer, unsigned long length);
+extern int json_get_bool(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       returns the content of the given JSON node as NULL pointer,
+ *               if the node is a JSON "null" value.
  *
- *  @param[in]   node - ...
+ *  @remarks     The buffer for the node value as zero-terminated string is
+ *               optional.
  *
- *  @returns     ...
+ *  @param[in]   node    - a JSON value node of type JSON "null"
+ *  @param[out]  buffer  - buffer for the node value, or NULL
+ *  @param[in]   length  - size of the buffer (in [Byte])
+ *
+ *  @returns     NULL
  */
-extern void* json_get_null(json_node_t node, char *buffer, unsigned long length);
+extern void* json_get_null(json_node_t node, char *buffer, jsize_t length);
 
-/** @brief       tbd.
+/** @brief       writes the content of the given JSON node and its childs
+ *               as JSON format into into a file (or to standard output). 
  *
- *  @param[in]   node - ...
- *
- *  @returns     ...
- */
-extern json_node_t json_get_value_first(json_node_t node);
-
-/** @brief       tbd.
- *
- *  @param[in]   node - ...
- *
- *  @returns     ...
- */
-extern json_node_t json_get_value_next(json_node_t node);
-
-/** @brief       tbd.
- *
- *  @param[in]   node - ...
- *
- *  @returns     ...
+ *  @param[in]   node      - a JSON value node to be dumped
+ *  @param[in]   filename  - name of the output file, or NULL for 'stdout' 
  */
 extern int json_dump(json_node_t node, const char *filename);
 
