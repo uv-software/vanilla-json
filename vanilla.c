@@ -133,6 +133,9 @@ static void free_literal(json_node_t node);
 static char* get_string(JSON json);
 static long scan_string(JSON json);
 static long scan_number(JSON json);
+static long scan_fraction(JSON json, long* idx);
+static long scan_exponent(JSON json, long* idx);
+static long scan_digit_sequence(JSON json, long* idx);
 static long scan_literal(JSON json, const char* literal);
 static char get_char(JSON json);
 static char lookahead(JSON json);
@@ -1075,6 +1078,120 @@ static void dump_string(json_node_t node, int depth, FILE* fp) {
  *               | '-'
  *               ;
  */
+#if (1)
+static long scan_number(JSON json) {
+    long len = 0, tmp;
+    long idx = json->pos;
+    assert(json);
+    assert(json->buf);
+    assert(json->len >= 1);
+    assert(json->pos <= json->len);
+    /* '0': no leading zeros */
+    if ((idx < json->len) && (json->buf[idx] == '0')) {
+        return 1;
+    }
+    /* minus sign is optional */
+    if ((idx < json->len) && (json->buf[idx] == '-')) {
+        len++;
+        idx++;
+    }
+    /* at least '1' to '9'*/
+    if ((idx < json->len) && (('1' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
+        len++;
+        idx++;
+        /* more digits (optional) */
+        len += scan_digit_sequence(json, &idx);
+        /* fraction (optional) */
+        if ((tmp = scan_fraction(json, &idx)) >= 0) {
+            len += tmp;
+            /* exponent (optional) */
+            if ((tmp = scan_exponent(json, &idx)) >= 0) {
+                len += tmp;
+            }
+            else {
+                len = (-1);
+            }
+        }
+        else {
+            len = (-1);
+        }
+    } else {
+        len = (-1);
+    }
+    return len;
+}
+
+static long scan_fraction(JSON json, long* idx) {
+    long len = 0;
+    assert(idx);
+    assert(json);
+    assert(json->buf);
+    assert(json->len >= 1);
+    assert(json->pos <= json->len);
+    /* decimal point: then we have a fraction */
+    if ((*idx < json->len) && (json->buf[*idx] == '.')) {
+        len++;
+        (*idx)++;
+        /* at least one digit */
+        if ((*idx < json->len) && (('0' <= json->buf[*idx]) && (json->buf[*idx] <= '9'))) {
+            len++;
+            (*idx)++;
+            /* more digits (optional) */
+            len += scan_digit_sequence(json, idx);
+        }
+        else {
+            len = (-1);
+        }
+    }
+    return len;
+}
+
+static long scan_exponent(JSON json, long* idx) {
+    long len = 0;
+    assert(idx);
+    assert(json);
+    assert(json->buf);
+    assert(json->len >= 1);
+    assert(json->pos <= json->len);
+    /* 'e' or 'E': then we have an exponent */
+    if ((*idx < json->len) && ((json->buf[*idx] == 'e') || (json->buf[*idx] == 'E'))) {
+        len++;
+        (*idx)++;
+        /* sign is optional */
+        if ((*idx < json->len) && ((json->buf[*idx] == '+') || (json->buf[*idx] == '-'))) {
+            len++;
+            (*idx)++;
+        }
+        /* at least one digit */
+        if ((*idx < json->len) && (('0' <= json->buf[*idx]) && (json->buf[*idx] <= '9'))) {
+            len++;
+            (*idx)++;
+            /* more digits (optional) */
+            len += scan_digit_sequence(json, idx);
+        }
+        else {
+            len = (-1);
+        }
+    }
+    return len;
+}
+
+static long scan_digit_sequence(JSON json, long* idx) {
+    long len = 0;
+    assert(idx);
+    assert(json);
+    assert(json->buf);
+    assert(json->len >= 1);
+    assert(json->pos <= json->len);
+    /* sequence of digits from '0' to '9' */
+    while ((*idx < json->len) && (('0' <= json->buf[*idx]) && (json->buf[*idx] <= '9'))) {
+        len++;
+        (*idx)++;
+    }
+    return len;
+}
+
+#else
 static long scan_number(JSON json) {
     long len = 0;
     long idx = 0;
@@ -1146,6 +1263,7 @@ static long scan_number(JSON json) {
     }
     return len;
 }
+#endif
 
 static json_node_t parse_number(JSON json) {
     struct json_node* node = NULL;
