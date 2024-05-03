@@ -269,13 +269,11 @@ json_node_t json_get_value_first(json_node_t node) {
         node->value.dict.curr = node->value.dict.head;
         if (node->value.dict.curr)
             value = node->value.dict.curr->value;
-    }
-    else if (node->type == JSON_ARRAY) {
+    } else if (node->type == JSON_ARRAY) {
         node->value.array.curr = node->value.array.head;
         if (node->value.array.curr)
             value = node->value.array.curr->value;
-    }
-    else {
+    } else {
         errno = EINVAL;  /* FIXME: error code */
     }
     return value;
@@ -293,14 +291,12 @@ json_node_t json_get_value_next(json_node_t node) {
             node->value.dict.curr = node->value.dict.curr->next;
         if (node->value.dict.curr)
             value = node->value.dict.curr->value;
-    }
-    else if (node->type == JSON_ARRAY) {
+    } else if (node->type == JSON_ARRAY) {
         if (node->value.array.curr)
             node->value.array.curr = node->value.array.curr->next;
         if (node->value.array.curr)
             value = node->value.array.curr->value;
-    }
-    else {
+    } else {
         errno = EINVAL;  /* FIXME: error code */
     }
     return value;
@@ -315,8 +311,7 @@ char* json_get_value_string(json_node_t node) {
     if (node->type == JSON_OBJECT) {
         if (node->value.dict.curr)
             string = node->value.dict.curr->string;
-    }
-    else {
+    } else {
         errno = EINVAL;  /* FIXME: error code */
     }
     return string;
@@ -332,8 +327,7 @@ int json_get_value_index(json_node_t node) {
     if (node->type == JSON_ARRAY) {
         if (node->value.array.curr)
             index = node->value.array.curr->index;
-    }
-    else {
+    } else {
         errno = EINVAL;  /* FIXME: error code */
     }
     return index;
@@ -488,13 +482,13 @@ void* json_get_null(json_node_t node, char* buffer, jsize_t length) {
     return NULL;
 }
 
-int json_dump(json_node_t node, const char* filename) {
+void json_dump(json_node_t node, const char* filename) {
     FILE* fp = NULL;
     errno = 0;
     if (filename) {
         if ((fp = fopen(filename, "w")) == NULL) {
             /* errno set */
-            return errno;
+            return;
         }
         dump_value(node, (-1), fp);
         fputc('\n', fp); fflush(fp);
@@ -503,7 +497,7 @@ int json_dump(json_node_t node, const char* filename) {
         dump_value(node, (-1), stdout);
         putchar('\n');
     }
-    return 0;
+    return;
 }
 
 /*  -----------  local functions  ----------------------------------------
@@ -518,11 +512,9 @@ static char get_char(JSON json) {
         if (json->buf[json->pos] == '\n') {
             json->col = 0;
             json->row++;
-        }
-        else if (json->buf[json->pos] == '\t') {
+        } else if (json->buf[json->pos] == '\t') {
             json->col = ((json->col % TAB_SIZE) + 1) * TAB_SIZE;
-        }
-        else {
+        } else {
             json->col++;
         }
         return json->buf[json->pos++];
@@ -545,11 +537,9 @@ static char lookahead(JSON json) {
         if (json->buf[json->pos] == '\n') {
             json->col = 0;
             json->row++;
-        }
-        else if (json->buf[json->pos] == '\t') {
+        } else if (json->buf[json->pos] == '\t') {
             json->col = ((json->col % TAB_SIZE) + 1) * TAB_SIZE;
-        }
-        else {
+        } else {
             json->col++;
         }
         json->pos++;
@@ -1107,8 +1097,7 @@ static long scan_number(JSON json) {
     if ((idx < json->len) && (('1' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
         len++;
         idx++;
-    }
-    else {
+    } else {
         return (-1);
     }
     /* zero to nine (optional) */
@@ -1124,8 +1113,7 @@ static long scan_number(JSON json) {
         if ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
             len++;
             idx++;
-        }
-        else {
+        } else {
             return (-1);
         }
         /* zero to nine (optional) */
@@ -1147,8 +1135,7 @@ static long scan_number(JSON json) {
         if ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
             len++;
             idx++;
-        }
-        else {
+        } else {
             return (-1);
         }
         /* zero to nine (optional) */
