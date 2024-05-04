@@ -135,7 +135,7 @@ static long scan_string(JSON json);
 static long scan_number(JSON json);
 static long scan_fraction(JSON json, long* idx);
 static long scan_exponent(JSON json, long* idx);
-static long scan_digit_sequence(JSON json, long* idx);
+static long scan_digits(JSON json, long* idx);
 static long scan_literal(JSON json, const char* literal);
 static char get_char(JSON json);
 static char lookahead(JSON json);
@@ -174,7 +174,7 @@ json_node_t json_read(const char* filename) {
         return NULL;
     }
     /* (3) read its content into a buffer */
-    if ((file.buf = (char*)malloc((size_t)file.len + 1)) == NULL) {
+    if ((file.buf = (char*)malloc((size_t)file.len + (size_t)1)) == NULL) {
         /* errno set */
         (void)fclose(fp);
         return NULL;
@@ -199,7 +199,8 @@ json_node_t json_read(const char* filename) {
 }
 
 void json_free(json_node_t node) {
-     free_value(node);
+    /* (X) get rid of all the crap */
+    free_value(node);
 }
 
 json_type_t json_get_value_type(json_node_t node) {
@@ -510,7 +511,6 @@ static char get_char(JSON json) {
     assert(json->buf);
     assert(json->len >= 1);
     assert(json->pos <= json->len);
-
     if (json->pos < json->len) {
         if (json->buf[json->pos] == '\n') {
             json->col = 0;
@@ -533,7 +533,6 @@ static char lookahead(JSON json) {
     assert(json->buf);
     assert(json->len >= 1);
     assert(json->pos <= json->len);
-
     while ((json->pos < json->len) &&
           ((json->buf[json->pos] == ' ') || (json->buf[json->pos] == '\n') ||
           (json->buf[json->pos] == '\r') || (json->buf[json->pos] == '\t'))) {
@@ -629,7 +628,7 @@ static json_node_t parse_object(JSON json) {
     struct json_member* curr = NULL;
     struct json_member* next = NULL;
     char* string = NULL;
-    
+    assert(json);
     if (get_char(json) != '{') {
         errno = EINVAL; /* FIXME: error code */
         return NULL;
@@ -959,7 +958,6 @@ static long scan_string(JSON json) {
     assert(json->buf);
     assert(json->len >= 1);
     assert(json->pos <= json->len);
-
     idx = json->pos;
     while ((idx < json->len) && (json->buf[idx] != '"')) {
         /* escape '\"' (ignore the other escape sequences) */
@@ -1078,9 +1076,8 @@ static void dump_string(json_node_t node, int depth, FILE* fp) {
  *               | '-'
  *               ;
  */
-#if (1)
 static long scan_number(JSON json) {
-    long len = 0, tmp;
+    long len = 0;
     long idx = json->pos;
     assert(json);
     assert(json->buf);
@@ -1088,35 +1085,27 @@ static long scan_number(JSON json) {
     assert(json->pos <= json->len);
     /* '0': no leading zeros */
     if ((idx < json->len) && (json->buf[idx] == '0')) {
-        return 1;
-    }
-    /* minus sign is optional */
-    if ((idx < json->len) && (json->buf[idx] == '-')) {
-        len++;
-        idx++;
-    }
-    /* at least '1' to '9'*/
-    if ((idx < json->len) && (('1' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-        len++;
-        idx++;
-        /* more digits (optional) */
-        len += scan_digit_sequence(json, &idx);
-        /* fraction (optional) */
-        if ((tmp = scan_fraction(json, &idx)) >= 0) {
-            len += tmp;
-            /* exponent (optional) */
-            if ((tmp = scan_exponent(json, &idx)) >= 0) {
-                len += tmp;
-            }
-            else {
-                len = (-1);
-            }
-        }
-        else {
-            len = (-1);
-        }
+        len = 1;
     } else {
-        len = (-1);
+        /* minus sign is optional */
+        if ((idx < json->len) && (json->buf[idx] == '-')) {
+            len++;
+            idx++;
+        }
+        /* at least '1' to '9'*/
+        if ((idx < json->len) && (('1' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
+            len++;
+            idx++;
+            /* more digits (optional) */
+            len += scan_digits(json, &idx);
+            /* fraction (optional) */
+            len += scan_fraction(json, &idx);
+            /* exponent (optional) */
+            len += scan_exponent(json, &idx);
+        } else {
+            // error: '1' to '9' expected
+            len = 0;
+        }
     }
     return len;
 }
@@ -1128,7 +1117,7 @@ static long scan_fraction(JSON json, long* idx) {
     assert(json->buf);
     assert(json->len >= 1);
     assert(json->pos <= json->len);
-    /* decimal point: then we have a fraction */
+    /* decimal point: starting a fraction */
     if ((*idx < json->len) && (json->buf[*idx] == '.')) {
         len++;
         (*idx)++;
@@ -1137,10 +1126,11 @@ static long scan_fraction(JSON json, long* idx) {
             len++;
             (*idx)++;
             /* more digits (optional) */
-            len += scan_digit_sequence(json, idx);
+            len += scan_digits(json, idx);
         }
         else {
-            len = (-1);
+            // error: '1' to '9' expected
+            len = 0;
         }
     }
     return len;
@@ -1153,11 +1143,11 @@ static long scan_exponent(JSON json, long* idx) {
     assert(json->buf);
     assert(json->len >= 1);
     assert(json->pos <= json->len);
-    /* 'e' or 'E': then we have an exponent */
+    /* 'e' or 'E': starting an exponent */
     if ((*idx < json->len) && ((json->buf[*idx] == 'e') || (json->buf[*idx] == 'E'))) {
         len++;
         (*idx)++;
-        /* sign is optional */
+        /* '+' or '-': sign is optional */
         if ((*idx < json->len) && ((json->buf[*idx] == '+') || (json->buf[*idx] == '-'))) {
             len++;
             (*idx)++;
@@ -1167,16 +1157,17 @@ static long scan_exponent(JSON json, long* idx) {
             len++;
             (*idx)++;
             /* more digits (optional) */
-            len += scan_digit_sequence(json, idx);
+            len += scan_digits(json, idx);
         }
         else {
-            len = (-1);
+            // error: '1' to '9' expected
+            len = 0;
         }
     }
     return len;
 }
 
-static long scan_digit_sequence(JSON json, long* idx) {
+static long scan_digits(JSON json, long* idx) {
     long len = 0;
     assert(idx);
     assert(json);
@@ -1190,86 +1181,11 @@ static long scan_digit_sequence(JSON json, long* idx) {
     }
     return len;
 }
-
-#else
-static long scan_number(JSON json) {
-    long len = 0;
-    long idx = 0;
-    assert(json);
-    assert(json->buf);
-    assert(json->len >= 1);
-    assert(json->pos <= json->len);
-
-    idx = json->pos;
-    /* the zero value */
-    if ((idx < json->len) && (json->buf[idx] == '0')) {
-        return 1;
-    }
-    /* negative value? */
-    if ((idx < json->len) && (json->buf[idx] == '-')) {
-        len++;
-        idx++;
-    }
-    /* one to nine (mandatory) */
-    if ((idx < json->len) && (('1' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-        len++;
-        idx++;
-    } else {
-        return (-1);
-    }
-    /* zero to nine (optional) */
-    while ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-        len++;
-        idx++;
-    }
-    /* fraction (optional) */
-    if ((idx < json->len) && (json->buf[idx] == '.')) {
-        len++;
-        idx++;
-        /* zero to nine (mandatory) */
-        if ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-            len++;
-            idx++;
-        } else {
-            return (-1);
-        }
-        /* zero to nine (optional) */
-        while ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-            len++;
-            idx++;
-        }
-    }
-    /* exponent (optional) */
-    if ((idx < json->len) && ((json->buf[idx] == 'e') || (json->buf[idx] == 'E'))) {
-        len++;
-        idx++;
-        /* sign (optional) */
-        if ((idx < json->len) && ((json->buf[idx] == '+') || (json->buf[idx] == '-'))) {
-            len++;
-            idx++;
-        }
-        /* zero to nine (mandatory) */
-        if ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-            len++;
-            idx++;
-        } else {
-            return (-1);
-        }
-        /* zero to nine (optional) */
-        while ((idx < json->len) && (('0' <= json->buf[idx]) && (json->buf[idx] <= '9'))) {
-            len++;
-            idx++;
-        }
-    }
-    return len;
-}
-#endif
-
 static json_node_t parse_number(JSON json) {
     struct json_node* node = NULL;
     char* string = NULL;
     long length = 0;
-
+    assert(json);
     if ((length = scan_number(json)) <= 0) {
         errno = EINVAL; /* FIXME: error code */
         return NULL;
@@ -1327,7 +1243,6 @@ static long scan_literal(JSON json, const char* literal) {
     assert(json->len >= 1);
     assert(json->pos <= json->len);
     assert(literal);
-
     len = strlen(literal);
     if (!strncmp(&json->buf[json->pos], literal, len))
         return (long)len;
@@ -1339,12 +1254,14 @@ static json_node_t parse_literal(JSON json, json_type_t type) {
     struct json_node* node = NULL;
     char* string = NULL;
     long length = 0;
-
+    assert(json);
     switch (type) {
     case JSON_TRUE:  length = scan_literal(json, "true"); break;
     case JSON_FALSE: length = scan_literal(json, "false"); break;
     case JSON_NULL:  length = scan_literal(json, "null"); break;
-    default: errno = EINVAL; return NULL;
+    default: 
+        errno = EINVAL; /* FIXME: error code */
+        return NULL;
     }
     if (length <= 0) {
         errno = EINVAL; /* FIXME: error code */
