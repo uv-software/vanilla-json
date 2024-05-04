@@ -49,15 +49,15 @@
  *
  *  @brief       Vanilla-JSON - A very simple JSON Parser
  *
- *  @author      $Author$
+ *  @author      $Author: neptune $
  *
- *  @version     $Rev$
+ *  @version     $Rev: 812 $
  *
  *  @addtogroup  json
  *  @{
  */
 #ifdef _MSC_VER
- //no Microsoft extensions please!
+ /*no Microsoft extensions please!*/
  #ifndef _CRT_SECURE_NO_WARNINGS
  #define _CRT_SECURE_NO_WARNINGS 1
  #endif
@@ -1105,7 +1105,7 @@ static long scan_number(JSON json) {
             /* exponent (optional) */
             len += scan_exponent(json, &idx);
         } else {
-            // error: '1' to '9' expected
+            /* error: '1' to '9' expected */
             len = 0;
         }
     }
@@ -1131,7 +1131,7 @@ static long scan_fraction(JSON json, long* idx) {
             len += scan_digits(json, idx);
         }
         else {
-            // error: '1' to '9' expected
+            /* error: '1' to '9' expected */
             len = 0;
         }
     }
@@ -1162,7 +1162,7 @@ static long scan_exponent(JSON json, long* idx) {
             len += scan_digits(json, idx);
         }
         else {
-            // error: '1' to '9' expected
+            /* error: '1' to '9' expected */
             len = 0;
         }
     }

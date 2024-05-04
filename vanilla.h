@@ -49,9 +49,9 @@
  *
  *  @brief       Vanilla-JSON - A very simple JSON Parser
  *
- *  @author      $Author$
+ *  @author      $Author: neptune $
  *
- *  @version     $Rev$
+ *  @version     $Rev: 812 $
  *
  *  @defgroup    json A very simple JSON Parser
  *  @{
