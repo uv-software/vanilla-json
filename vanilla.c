@@ -193,7 +193,9 @@ json_node_t json_read(const char* filename) {
     }
     /* (5) parse the content of the file */
     file.buf[file.len] = '\0';
-    root = parse_value(&file);
+    if (file.len > 0) {
+        root = parse_value(&file);
+    }
     free(file.buf);
     return root;
 }
