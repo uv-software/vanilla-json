@@ -1,0 +1,32 @@
+[
+	{ "test": "test01.json", "extected": 0},
+	{ "test": "test02.json", "extected": 42},
+	{ "test": "test03.json", "extected": -99},
+	{ "test": "test04.json", "extected": -273.15},
+	{ "test": "test05.json", "extected": 2.99792458E+8},
+	{ "test": "test06.json", "extected": "Hello World\\\""},
+	{ "test": "test07.json", "extected": true},
+	{ "test": "test08.json", "extected": false},
+	{ "test": "test09.json", "extected": null},
+	{ "test": "test10.json", "extected": {}},
+	{ "test": "test11.json", "extected": {
+											"name": "Uwe Vogt",
+											"mail": "uwe.vogt@uv-software.de"
+										 }},
+	{ "test": "test12.json", "extected": []},
+	{ "test": "test12.json", "extected": [
+											0,
+											42,
+											-99,
+											-273.15,
+											2.99792458E+8,
+											"Hello World\\\"",
+											{
+												"name": "Uwe Vogt",
+												"mail": "uwe.vogt@uv-software.de"
+											},
+											true,
+											false,
+											null
+										 ]}
+]
