@@ -49,9 +49,9 @@
  *
  *  @brief       Vanilla-JSON - A very simple JSON Parser
  *
- *  @author      $Author: quaoar $
+ *  @author      $Author: makemake $
  *
- *  @version     $Rev: 813 $
+ *  @version     $Rev: 814 $
  *
  *  @addtogroup  json
  *  @{
@@ -308,7 +308,7 @@ json_node_t json_get_value_next(json_node_t node) {
     return value;
 }
 
-char* json_get_value_string(json_node_t node) {
+char* json_get_object_string(json_node_t node) {
     char* string = NULL;
     if (!node) {
         errno = EINVAL;  /* FIXME: error code */
@@ -323,7 +323,7 @@ char* json_get_value_string(json_node_t node) {
     return string;
 }
 
-int json_get_value_index(json_node_t node) {
+int json_get_array_index(json_node_t node) {
     int index = (-1);
     errno = 0;
     if (!node) {

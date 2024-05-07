@@ -49,9 +49,9 @@
  *
  *  @brief       Vanilla-JSON - A very simple JSON Parser
  *
- *  @author      $Author: quaoar $
+ *  @author      $Author: makemake $
  *
- *  @version     $Rev: 813 $
+ *  @version     $Rev: 814 $
  *
  *  @defgroup    json A very simple JSON Parser
  *  @{
@@ -217,7 +217,7 @@ extern json_node_t json_get_value_next(json_node_t node);
  *
  *  @returns     the key of the current member, or NULL
  */
-extern char *json_get_value_string(json_node_t node);
+extern char *json_get_object_string(json_node_t node);
 
 /** @brief       returns the index of the current JSON array element,
  *               if the given node is a JSON array and if it has a
@@ -227,7 +227,7 @@ extern char *json_get_value_string(json_node_t node);
  *
  *  @returns     the index of the current element, or a negative value
  */
-extern int json_get_value_index(json_node_t node);
+extern int json_get_array_index(json_node_t node);
 
 /** @brief       returns a pointer to the content of the given JSON node as
  *               zero-terminated string, if the node is a JSON string.
@@ -328,6 +328,14 @@ extern void* json_get_null(json_node_t node, char *buffer, jsize_t length);
  *  @param[in]   filename  - name of the output file, or NULL for 'stdout' 
  */
 extern void json_dump(json_node_t node, const char *filename);
+
+/** @name        Deprecated Names
+ *  @brief       Deprecated names for compatibility reasons.
+ *  @remarks     Deprecated names should not be used anymore!
+ *  @{ */
+#define json_get_value_string  json_get_object_string
+#define json_get_value_index   json_get_array_index
+/** @} */
 
 #ifdef __cplusplus
 }

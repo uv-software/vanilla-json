@@ -15,7 +15,7 @@
 #define OPT_DUMPFILE_SHORT  "/D:"
 #define OPT_DUMPFILE_ARG    ':'
 #define OPT_VERBOSE_LONG    "/VERBOSE"
-#define OPT_VERBOSE_SHORT   "/V:"
+#define OPT_VERBOSE_SHORT   "/V"
 #else
 #define OPT_DUMPFILE_LONG   "--dumpfile="
 #define OPT_DUMPFILE_SHORT  "-d="
@@ -38,7 +38,15 @@ int main(int argc, char * argv[]) {
     json_node_t root;
     struct options opts;
     int rc = 0;
-
+#if !defined(_MSC_VER)
+    fprintf(stdout, "vanilla-json (%s %s %s)\n",__DATE__,__TIME__,__VERSION__);
+#else
+#if !defined(_WIN64)
+    fprintf(stdout, "vanilla-json (%s %s MSC %i x86)\n",__DATE__,__TIME__,_MSC_VER);
+#else
+    fprintf(stdout, "vanilla-json (%s %s MSC %i x64)\n",__DATE__,__TIME__,_MSC_VER);
+#endif
+#endif
     memset(&opts, 0, sizeof(struct options));
     errno = 0;
 
@@ -129,7 +137,7 @@ void traverse(json_node_t node, int level) {
             for (i = 0; i <= level; i++)
                 fputc('-', stdout);
             /* -- print the key (string) of the current object member */
-            fprintf(stdout, "> object member \"%s\":\n", json_get_value_string(node));
+            fprintf(stdout, "> object member \"%s\":\n", json_get_object_string(node));
             /* -- traverse the current object member (recursive) */
             traverse(curr, level + 1);
             /* -- next please */
@@ -154,7 +162,7 @@ void traverse(json_node_t node, int level) {
             for (i = 0; i <= level; i++)
                 fputc('-', stdout);
             /* -- print the index of the current array element */
-            fprintf(stdout, "> array index %i:\n", json_get_value_index(node));
+            fprintf(stdout, "> array index %i:\n", json_get_array_index(node));
             /* -- traverse the current array element (recursive) */
             traverse(curr, level + 1);
             /* -- next please */
